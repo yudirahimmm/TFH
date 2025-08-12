@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link in Bio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <img id="profileImage" class="profile-pic" src="" alt="Profile Picture">
+        <h1 id="pageTitle">My Links</h1>
+        <div id="linksContainer"></div>
+    </div>
+
+    <script>
+        const data = JSON.parse(localStorage.getItem('linkInBioData')) || { title: 'My Links', links: [], profileImage: '' };
+        document.getElementById('pageTitle').innerText = data.title;
+        if (data.profileImage) document.getElementById('profileImage').src = data.profileImage;
+
+        const container = document.getElementById('linksContainer');
+        data.links.forEach(l => {
+            let a = document.createElement('a');
+            a.href = l.url;
+            a.className = 'link';
+            a.innerText = l.text;
+            a.target = '_blank';
+            container.appendChild(a);
+        });
+    </script>
+</body>
+</html>

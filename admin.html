@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container" id="loginContainer">
+        <h1>Login Admin</h1>
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div class="container" id="adminContainer" style="display:none;">
+        <h1>Admin Panel</h1>
+        <input type="text" id="titleInput" placeholder="Page Title"><br>
+        <input type="file" id="profileUpload" accept="image/*"><br>
+        <div id="linksEditor"></div>
+        <button onclick="addLink()">Add Link</button>
+        <button onclick="saveData()">Save</button>
+        <button onclick="exportData()">Export JSON</button>
+        <input type="file" id="importFile" accept="application/json" onchange="importData(event)">
+    </div>
+
+    <script>
+        const PASSWORD = "admin123";
+        let data = JSON.parse(localStorage.getItem('linkInBioData')) || { title: 'My Links', links: [], profileImage: '' };
+
+        function login() {
+            const pass = document.getElementById('password').value;
+            if (pass === PASSWORD) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('adminContainer').style.display = 'block';
+                loadAdmin();
+            } else {
+                alert('Wrong password');
+            }
+        }
+
+        function loadAdmin() {
+            document.getElementById('titleInput').value = data.title;
+            const editor = document.getElementById('linksEditor');
+            editor.innerHTML = '';
+            data.links.forEach((link, index) => {
+                editor.innerHTML += `
+                    <input type="text" placeholder="Link Text" value="${link.text}" onchange="updateLink(${index}, 'text', this.value)">
+                    <input type="text" placeholder="Link URL" value="${link.url}" onchange="updateLink(${index}, 'url', this.value)">
+                `;
+            });
+            document.getElementById('profileUpload').addEventListener('change', handleProfileUpload);
+        }
+
+        function handleProfileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                data.profileImage = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateLink(index, field, value) {
+            data.links[index][field] = value;
+        }
+
+        function addLink() {
+            data.links.push({ text: '', url: '' });
+            loadAdmin();
+        }
+
+        function saveData() {
+            data.title = document.getElementById('titleInput').value;
+            localStorage.setItem('linkInBioData', JSON.stringify(data));
+            alert('Data saved!');
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'linkInBioData.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    data = JSON.parse(e.target.result);
+                    saveData();
+                    loadAdmin();
+                } catch (err) {
+                    alert('Invalid JSON file');
+                }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
